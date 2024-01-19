@@ -143,7 +143,7 @@ public class BoardService {
         }
 
         boardRepository.save(board);
-
+        // 버튼 누르는 로직 추가
         return board;
     }
 }
