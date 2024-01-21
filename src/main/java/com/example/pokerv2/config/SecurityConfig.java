@@ -1,6 +1,5 @@
 package com.example.pokerv2.config;
 
-import com.example.pokerv2.enums.Role;
 import com.example.pokerv2.service.MyUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
