@@ -68,5 +68,4 @@ public class Player {
         this.status = PlayerStatus.valueOf(playerDto.getStatus());
         this.phaseCallSize = playerDto.getPhaseCallSize();
     }
-
 }
