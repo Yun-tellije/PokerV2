@@ -4,10 +4,7 @@ import com.example.pokerv2.dto.BoardDto;
 import com.example.pokerv2.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
@@ -27,4 +24,9 @@ public class BoardController {
         System.out.println("principal = " + principal.getName());
         return boardService.join(bb, principal);
     }
+
+//    @GetMapping("{boardId}")
+//    public BoardDto get(@PathVariable Long boardId, Principal principal){
+//        return boardService.get(boardId, principal);
+//    }
 }

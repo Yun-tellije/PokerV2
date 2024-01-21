@@ -36,5 +36,5 @@ public class UserService {
         savedUser.setRoles(Collections.singletonList("ROLE_USER"));
         userRepository.save(savedUser);
         return savedUser;
-    }
+    } // User를 리턴할 필요가 있나요?
 }

@@ -1,6 +1,8 @@
 package com.example.pokerv2.service;
 
 import com.example.pokerv2.dto.BoardDto;
+import com.example.pokerv2.dto.MessageDto;
+import com.example.pokerv2.enums.MessageType;
 import com.example.pokerv2.enums.PhaseStatus;
 import com.example.pokerv2.enums.PlayerStatus;
 import com.example.pokerv2.enums.Position;
@@ -32,6 +34,8 @@ public class BoardService {
     private final PlayerRepository playerRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final ActionRepository actionRepository;
+    private final static String TOPIC_PREFIX = "/topic/board/";
+    private final static int RESULT_ANIMATION_DELAY = 5;
 
     /**
      * 게임 입장 서비스
@@ -60,7 +64,7 @@ public class BoardService {
             board = playableBoard.get(0);
         }
         else{
-            board = Board.builder().phaseStatus(PhaseStatus.WAITING).build();
+            board = Board.builder().blind(1000).phaseStatus(PhaseStatus.WAITING).build();
         }
         board.setTotalPlayer(board.getTotalPlayer()+1);
 
@@ -74,7 +78,7 @@ public class BoardService {
         players.add(player);
         player.setPosition(position);
         playerRepository.save(player);
-
+        simpMessagingTemplate.convertAndSend(TOPIC_PREFIX + board.getId(), new MessageDto(MessageType.PLAYER_JOIN.getDetail(), new BoardDto(board)));
         if(board.getTotalPlayer() > 1 && board.getPhaseStatus().equals(PhaseStatus.WAITING)){
             board = startGame(board.getId());
         }
@@ -116,11 +120,15 @@ public class BoardService {
     @Transactional
     // 참가비 걷기
     public Player buyIn(Board board, User user, int bb){
-        if(user.getMoney() < board.getBlind() * bb){
+        int money = user.getMoney();
+        int blind = board.getBlind();
+        if (money < blind * bb)
             throw new CustomException(ErrorCode.NOT_ENOUGH_MONEY);
-        }
-        user.setMoney(user.getMoney() - board.getBlind() * bb);
-        return Player.builder().user(user).board(board).money(board.getBlind()*bb).status(PlayerStatus.FOLD).build();
+
+        user.setMoney(user.getMoney() - blind * bb);
+        Player player = Player.builder().money(blind * bb).board(board).status(PlayerStatus.FOLD).user(user).build();
+
+        return playerRepository.save(player);
     }
 
     private void setCommunityCard(Board board, int order, int card) {
@@ -146,4 +154,8 @@ public class BoardService {
         // 버튼 누르는 로직 추가
         return board;
     }
+
+//    public BoardDto get(Long boardId, Principal p){
+//
+//    }
 }
