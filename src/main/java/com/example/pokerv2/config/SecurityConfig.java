@@ -1,5 +1,6 @@
 package com.example.pokerv2.config;
 
+import com.example.pokerv2.repository.UserRepository;
 import com.example.pokerv2.service.MyUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
@@ -30,7 +31,8 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final MyUserDetailsService myUserDetailsService;
-
+    private final static String SUBSCRIBE_HEADER = "SUBSCRIBE-ID";
+    private final UserRepository userRepository;
     @Bean
     public BCryptPasswordEncoder encodePwd() {
         return new BCryptPasswordEncoder();
@@ -65,7 +67,8 @@ public class SecurityConfig {
                                 .passwordParameter("password")
                                 .loginProcessingUrl("/login")
                                 .successHandler((httpServletRequest, httpServletResponse, authentication) -> {
-                                }) //
+                                httpServletResponse.addHeader(SUBSCRIBE_HEADER, userRepository.findByUserId(authentication.getName()).get().getId().toString());
+                                })
                 )
 
                 .userDetailsService(myUserDetailsService);
@@ -108,7 +111,8 @@ public class SecurityConfig {
 
         configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("HEAD","POST","GET","DELETE","PUT"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(Arrays.asList("*")); // request
+        configuration.setExposedHeaders(Arrays.asList(SUBSCRIBE_HEADER)); // response
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
