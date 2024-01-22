@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -66,55 +67,86 @@ public class BoardService {
         else{
             board = Board.builder().blind(1000).phaseStatus(PhaseStatus.WAITING).build();
         }
-        board.setTotalPlayer(board.getTotalPlayer()+1);
+//        board.setTotalPlayer(board.getTotalPlayer()+1);
 
-        List<Player> players = board.getPlayers();
+//        List<Player> players = board.getPlayers();
 
-        Position position = pos(board);
         board = boardRepository.save(board);
 
         Player player = buyIn(board, user, requestBb);
-                //Player.builder().user(user).board(board).status(PlayerStatus.FOLD).build();
-        players.add(player);
-        player.setPosition(position);
+        sitIn(board, player);
+
+//        players.add(player);
         playerRepository.save(player);
         simpMessagingTemplate.convertAndSend(TOPIC_PREFIX + board.getId(), new MessageDto(MessageType.PLAYER_JOIN.getDetail(), new BoardDto(board)));
+
         if(board.getTotalPlayer() > 1 && board.getPhaseStatus().equals(PhaseStatus.WAITING)){
             board = startGame(board.getId());
         }
 
+        System.out.println("board.getTotalPlayer() = " + board.getTotalPlayer());
+        // sitout test(성공)
+//        if(board.getTotalPlayer() == 2){
+//            sitOut(new BoardDto(board), principal);
+//            // 남은 플레이어의 status는 그대로 유지됨 -> board 초기화 할때 한번에 손대기
+//        }
+
         return new BoardDto(board);
     }
 
-    public Position pos(Board board){
+//    public Position pos(Board board){
+//        List<Player> players = board.getPlayers();
+//        // 플레이어 각자 포지션이 일치하는지 확인
+//        // 없는거 리턴
+//        // Position 열거랑 비교
+//        int[] check = new int[Position.values().length];
+//
+//        for(int i=0; i<check.length; i++){
+//            check[i] = 0;
+//        }
+//
+//        for(int i=0; i<players.size(); i++){
+//            Player player = players.get(i);
+//            int j=0;
+//            for(Position temp : Position.values()) {
+//                if(player.getPosition() == temp) {
+//                    check[j]++;
+//                }
+//                j++;
+//            }
+//        }
+//        for(int i=0; i< check.length; i++){
+//            if(check[i]==0){
+//                System.out.println("포지션 체크");
+//                System.out.println(Position.values()[i]);
+//                return Position.values()[i];
+//            }
+//        }
+//        return null;
+//    }
+
+    @Transactional
+    public void sitIn(Board board, Player joinPlayer) {
         List<Player> players = board.getPlayers();
-        // 플레이어 각자 포지션이 일치하는지 확인
-        // 없는거 리턴
-        // Position 열거랑 비교
-        int[] check = new int[Position.values().length];
+        boolean[] isExistSeat = new boolean[MAX_PLAYER];
+        Random random = new Random();
+        int pos = random.nextInt(MAX_PLAYER);
 
-        for(int i=0; i<check.length; i++){
-            check[i] = 0;
+        for (Player player : players) {
+            isExistSeat[player.getPosition().ordinal()] = true;
         }
 
-        for(int i=0; i<players.size(); i++){
-            Player player = players.get(i);
-            int j=0;
-            for(Position temp : Position.values()) {
-                if(player.getPosition() == temp) {
-                    check[j]++;
-                }
-                j++;
+        for (int i = 0; i < MAX_PLAYER; i++) {
+            if (isExistSeat[pos]) {
+                pos = (pos + 1) % MAX_PLAYER;
+            } else {
+                joinPlayer.setPosition(Position.getPositionByNumber(pos));
+                System.out.println(joinPlayer.getPosition());
+                players.add(joinPlayer);
+                board.setTotalPlayer(board.getTotalPlayer() + 1);
+                break;
             }
         }
-        for(int i=0; i< check.length; i++){
-            if(check[i]==0){
-                System.out.println("포지션 체크");
-                System.out.println(Position.values()[i]);
-                return Position.values()[i];
-            }
-        }
-        return null;
     }
 
     @Transactional
@@ -155,7 +187,55 @@ public class BoardService {
         return board;
     }
 
-//    public BoardDto get(Long boardId, Principal p){
-//
-//    }
+    @Transactional
+    public void sitOut(BoardDto boardDto, Principal principal){
+        User user = userRepository.findByUserId(principal.getName()).orElseThrow(() -> new CustomException(ErrorCode.BAD_REQUEST));
+        Board board = boardRepository.findById(boardDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.BAD_REQUEST));
+        List<Player> players = board.getPlayers();
+
+        Player exitPlayer;
+
+        for(Player player : players){
+            exitPlayer = playerRepository.findById(player.getId()).orElseThrow(() -> new CustomException(ErrorCode.BAD_REQUEST));
+            if(player.getUser().equals(user)){
+                exitPlayer = playerRepository.findById(player.getId()).orElseThrow(() -> new CustomException(ErrorCode.BAD_REQUEST));
+
+                players.remove(exitPlayer);
+                System.out.println("플레이어 퇴장");
+                board.setTotalPlayer(board.getTotalPlayer() - 1);
+                System.out.println("board.getTotalPlayer() = " + board.getTotalPlayer());
+                playerRepository.delete(exitPlayer);
+                break;
+            }
+        }
+        simpMessagingTemplate.convertAndSend(TOPIC_PREFIX + board.getId(), new MessageDto(MessageType.PLAYER_EXIT.getDetail(), new BoardDto(board)));
+
+        // board에서 totalplayer를 한명 줄였을 때 남은 인원이 한명이라면 게임 종료
+        if(board.getTotalPlayer() == 1){
+            endGame(board);
+        }
+
+    }
+
+    // 보드에 남은 인원이 1명일 때, 게임이 끝났을 때(마지막 라운드까지 간 경우, 한명을 제외한 플레이어들이 FOLD인 경우)일 때 호출
+    public void endGame(Board board) {
+        // 1) 플레이어들이 FOLD일 때 -> 우승자를 찾아야함
+        // 2) 보드에 남은 인원이 1명일 때, 한명을 제외한 플레이어들이 FOLD일 때 -> 카드 공개(showdown)
+
+        int foldCount = 0;
+        List<Player> players = board.getPlayers();
+
+        for (Player player : players) {
+            if (player.getStatus() == PlayerStatus.FOLD) {
+                foldCount++;
+            }
+        }
+
+        if (foldCount == board.getTotalPlayer() - 1) {
+            // TODO 우승자 정해주는 메소드
+        } else {
+            // TODO showdown 메소드
+        }
+    }
+
 }
