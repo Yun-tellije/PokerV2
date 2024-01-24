@@ -25,6 +25,11 @@ public class BoardController {
         return boardService.join(bb, principal);
     }
 
+    @PostMapping("/start/{boardId}")
+    public BoardDto startGame(@PathVariable Long boardId){
+        return new BoardDto(boardService.startGame(boardId));
+    }
+
 //    @GetMapping("{boardId}")
 //    public BoardDto get(@PathVariable Long boardId, Principal principal){
 //        return boardService.get(boardId, principal);
