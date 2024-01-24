@@ -38,6 +38,7 @@ public class BoardService {
     private final static String TOPIC_PREFIX = "/topic/board/";
     private final static int RESULT_ANIMATION_DELAY = 5;
 
+
     /**
      * 게임 입장 서비스
      *
@@ -80,9 +81,9 @@ public class BoardService {
         playerRepository.save(player);
         simpMessagingTemplate.convertAndSend(TOPIC_PREFIX + board.getId(), new MessageDto(MessageType.PLAYER_JOIN.getDetail(), new BoardDto(board)));
 
-        if(board.getTotalPlayer() > 1 && board.getPhaseStatus().equals(PhaseStatus.WAITING)){
-            board = startGame(board.getId());
-        }
+//        if(board.getTotalPlayer() > 1 && board.getPhaseStatus().equals(PhaseStatus.WAITING)){
+//            board = startGame(board.getId());
+//        }
 
         System.out.println("board.getTotalPlayer() = " + board.getTotalPlayer());
         // sitout test(성공)
@@ -184,6 +185,7 @@ public class BoardService {
 
         boardRepository.save(board);
         // 버튼 누르는 로직 추가
+        simpMessagingTemplate.convertAndSend(TOPIC_PREFIX + boardId, new MessageDto(MessageType.GAME_START.getDetail(), new BoardDto(board)));
         return board;
     }
 
