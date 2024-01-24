@@ -164,18 +164,76 @@ public class BoardService {
     public Board startGame(Long boardId){
         Board board = boardRepository.findById(boardId).orElseThrow(() -> new CustomException(ErrorCode.BAD_REQUEST));
 
+        setBtnExistPlayer(board);
+        setFirstActionPos(board);
         board.setPhaseStatus(PhaseStatus.PRE_FLOP);
-
         dealCard(board);
+
         for(Player player : board.getPlayers()){
             player.setStatus(PlayerStatus.PLAY);
         }
 
         boardRepository.save(board);
-        // 버튼 누르는 로직 추가
         simpMessagingTemplate.convertAndSend(TOPIC_PREFIX + boardId, new MessageDto(MessageType.GAME_START.getDetail(), new BoardDto(board)));
         return board;
     }
+
+    //
+    public void setBtnExistPlayer(Board board){
+       List<Player> players = board.getPlayers();
+
+       int nextBtn = (board.getBtn() + 1 ) % MAX_PLAYER;
+
+       while(true){
+           boolean isExist = false;
+           for(int i=0; i<board.getTotalPlayer(); i++){
+               Player player = players.get(i);
+               if(player.getPosition().getPosNum() == nextBtn){
+                   board.setBtn(nextBtn);
+                   isExist = true;
+               }
+
+           }
+           if(isExist == true) {
+               break;
+           }
+            nextBtn = (nextBtn+1) % MAX_PLAYER;
+       }
+
+    }
+
+    private void setFirstActionPos(Board board){
+        List<Player> players = board.getPlayers();
+
+        if(board.getTotalPlayer() == 2){
+            board.setActionPos(board.getBtn());
+        } else{
+            board.setActionPos(board.getBettingPos());
+        }
+    }
+
+    @Transactional
+    public void nextPhase(Board board){
+//        beforeNextPhase(board);
+
+        if(board.getPhaseStatus() == PhaseStatus.PRE_FLOP){
+            board.setPhaseStatus(PhaseStatus.FLOP);
+        } else if(board.getPhaseStatus() == PhaseStatus.FLOP){
+            board.setPhaseStatus(PhaseStatus.TURN);
+        } else if(board.getPhaseStatus() == PhaseStatus.TURN){
+            board.setPhaseStatus(PhaseStatus.RIVER);
+        } else if(board.getPhaseStatus() == PhaseStatus.RIVER){
+            board.setPhaseStatus(PhaseStatus.SHOWDOWN);
+        }
+    }
+
+    //
+//    private Board beforeNextPhase(Board board){
+//        List<Player> players = board.getPlayers();
+//
+//
+//
+//    }
 
     // 플레이어들의 카드 지정
     public void dealCard(Board board){
@@ -183,9 +241,15 @@ public class BoardService {
         Random random = new Random();
         int cardSize = board.getTotalPlayer() * 2 + 5;
 
-        for(int i=0; i<cardSize; i++){
-            int randonNum = random.nextInt(52);
-            cards.add(randonNum);
+//        for(int i=0; i<cardSize; i++){
+//            int randonNum = random.nextInt(52);
+//            cards.add(randonNum);
+//        }
+        // set이라서 for문 해버리면 만약 중복된 카드가 나왔을 때 add가 안되어서 카드 부족 -> 오류 발생
+
+        while(cards.size() < cardSize){
+            int randomNum = random.nextInt(52);
+            cards.add(randomNum);
         }
 
         List<Integer> card = new ArrayList<>(cards);
