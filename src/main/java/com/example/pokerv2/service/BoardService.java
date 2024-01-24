@@ -22,8 +22,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -68,9 +67,6 @@ public class BoardService {
         else{
             board = Board.builder().blind(1000).phaseStatus(PhaseStatus.WAITING).build();
         }
-//        board.setTotalPlayer(board.getTotalPlayer()+1);
-
-//        List<Player> players = board.getPlayers();
 
         board = boardRepository.save(board);
 
@@ -164,21 +160,13 @@ public class BoardService {
         return playerRepository.save(player);
     }
 
-    private void setCommunityCard(Board board, int order, int card) {
-        switch (order) {
-            case 1 -> board.setCommunityCard1(card);
-            case 2 -> board.setCommunityCard2(card);
-            case 3 -> board.setCommunityCard3(card);
-            case 4 -> board.setCommunityCard4(card);
-            case 5 -> board.setCommunityCard5(card);
-        };
-    }
-
     @Transactional
     public Board startGame(Long boardId){
         Board board = boardRepository.findById(boardId).orElseThrow(() -> new CustomException(ErrorCode.BAD_REQUEST));
 
         board.setPhaseStatus(PhaseStatus.PRE_FLOP);
+
+        dealCard(board);
         for(Player player : board.getPlayers()){
             player.setStatus(PlayerStatus.PLAY);
         }
@@ -188,6 +176,38 @@ public class BoardService {
         simpMessagingTemplate.convertAndSend(TOPIC_PREFIX + boardId, new MessageDto(MessageType.GAME_START.getDetail(), new BoardDto(board)));
         return board;
     }
+
+    // 플레이어들의 카드 지정
+    public void dealCard(Board board){
+        Set<Integer> cards = new HashSet<>();
+        Random random = new Random();
+        int cardSize = board.getTotalPlayer() * 2 + 5;
+
+        for(int i=0; i<cardSize; i++){
+            int randonNum = random.nextInt(52);
+            cards.add(randonNum);
+        }
+
+        List<Integer> card = new ArrayList<>(cards);
+        board.setCommunityCard1(card.get(0));
+        board.setCommunityCard2(card.get(1));
+        board.setCommunityCard3(card.get(2));
+        board.setCommunityCard4(card.get(3));
+        board.setCommunityCard5(card.get(4));
+
+        List<Player> players = board.getPlayers();
+
+        int idx = 5;
+        for(Player player : players){
+            player.setCard1(card.get(idx));
+            player.setCard2(card.get(idx+1));
+
+            idx += 2;
+        }
+
+    }
+
+
 
     @Transactional
     public void sitOut(BoardDto boardDto, Principal principal){
@@ -240,4 +260,8 @@ public class BoardService {
         }
     }
 
+    // 보드 및 카드 초기화
+    public void initBoard(Board board){
+
+    }
 }
