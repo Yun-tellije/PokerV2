@@ -28,7 +28,7 @@ public enum ErrorCode {
 
 
     /* 500 INTERNAL_SERVER_ERROR : 서버오류 */
-
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류")
     ;
 
     private final HttpStatus httpStatus;
