@@ -30,8 +30,9 @@ public class BoardController {
         return new BoardDto(boardService.startGame(boardId));
     }
 
-//    @GetMapping("{boardId}")
-//    public BoardDto get(@PathVariable Long boardId, Principal principal){
-//        return boardService.get(boardId, principal);
-//    }
+    @MessageMapping("/board/action")
+    public void action(@RequestBody BoardDto boardDto, Principal principal){
+        boardService.action(boardDto, principal);
+    }
+
 }
