@@ -7,9 +7,13 @@ import lombok.Getter;
 @Getter
 public enum PlayerStatus {
 
-    FOLD(0),
-    ALL_IN(1),
-    PLAY(2);
+
+    DISCONNECT_FOLD(0),
+    DISCONNECT_PLAYED(1),
+    DISCONNECT_ALL_IN(2),
+    FOLD(3),
+    ALL_IN(4),
+    PLAY(5);
 
     private final int statusNum;
 
