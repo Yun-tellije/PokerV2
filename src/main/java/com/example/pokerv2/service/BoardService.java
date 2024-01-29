@@ -338,6 +338,7 @@ public class BoardService {
      */
     private Board beforeNextPhase(Board board){
         List<Player> players = board.getPlayers();
+        List<Integer> totalCallSize = board.getTotalCallSize();
         board.setLastActionTime(LocalDateTime.now());
 
         int idx = getPlayerIdxByPos(board, board.getBtn());
@@ -346,9 +347,10 @@ public class BoardService {
         board.setBettingPos(board.getActionPos());
         board.setBettingSize(0);
 
-        for (Player player : players) {
+        for (int i=0; i<players.size(); i++) {
+            Player player = players.get(i);
             board.setPot(board.getPot() + player.getPhaseCallSize());
-            player.setTotalCallSize(player.getTotalCallSize() + player.getPhaseCallSize());
+            totalCallSize.set(i, totalCallSize.get(i) + player.getPhaseCallSize());
             player.setPhaseCallSize(0);
         }
 
