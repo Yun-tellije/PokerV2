@@ -30,6 +30,7 @@ public class GameResultDto {
 
     private boolean isWinner;
     private int earnedMoney;
+    private String handContext;
     private long handValue;
     private List<Integer> jokBo;
 
