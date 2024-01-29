@@ -28,9 +28,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     // 메시지 브로커 설정(발신자의 메시지를 받아와 수신자들에게 메시지 전달)
     public void configureMessageBroker(MessageBrokerRegistry registry){
         registry.enableSimpleBroker("/queue", "/topic");
+        registry.setApplicationDestinationPrefixes("/pub");
         // 스프링에서 제공하는 내장 브로커 사용 | queue(1:1), topic(1:n)
-        registry.setApplicationDestinationPrefixes("/app");
-        // 메시지에 가공이 필요할 때 핸들러를 타고 가게 함, 여기서는 /app 경로로 발신되면 이 핸들러로 전달
     }
 
     @Override
