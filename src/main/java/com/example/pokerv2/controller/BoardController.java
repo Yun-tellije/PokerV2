@@ -3,6 +3,7 @@ package com.example.pokerv2.controller;
 import com.example.pokerv2.dto.BoardDto;
 import com.example.pokerv2.service.BoardService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,9 +31,10 @@ public class BoardController {
         return new BoardDto(boardService.startGame(boardId));
     }
 
-    @MessageMapping("/board/action")
-    public void action(@RequestBody BoardDto boardDto, Principal principal){
-        boardService.action(boardDto, principal);
+    @MessageMapping("/board/action/{option}")
+    public void action(@RequestBody BoardDto boardDto, @DestinationVariable String option, Principal principal){
+        System.out.println("action controller");
+        boardService.action(boardDto, option, principal.getName());
     }
 
 }
