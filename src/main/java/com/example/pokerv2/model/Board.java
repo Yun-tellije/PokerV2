@@ -77,6 +77,10 @@ public class Board {
     @Builder.Default
     private List<Player> players = new ArrayList<>();
 
+    @ElementCollection
+    @Builder.Default
+    private List<Integer> totalCallSize = new ArrayList<>(List.of(0,0,0,0,0,0));
+
     public void changeBoardStatus(BoardDto boardDto){
         this.totalPlayer = boardDto.getTotalPlayer();
         this.blind = boardDto.getBlind();
