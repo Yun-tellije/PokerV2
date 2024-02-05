@@ -21,11 +21,11 @@ public enum ErrorCode {
 
 
     /* 404 NOT_FOUND : Resource 를 찾을 수 없음 */
-
+    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않은 경로입니다"),
 
     /* 409 CONFLICT : Resource 의 현재 상태와 충돌. 보통 중복된 데이터 존재 */
     DUPLICATE_USER(HttpStatus.CONFLICT, "이미 존재하는 userId 입니다"),
-
+    MAX_PLAYER_SIZE(HttpStatus.CONFLICT, "플레이어 입장 수 초과입니다"),
 
     /* 500 INTERNAL_SERVER_ERROR : 서버오류 */
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류")
