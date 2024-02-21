@@ -26,6 +26,7 @@ public enum ErrorCode {
     /* 409 CONFLICT : Resource 의 현재 상태와 충돌. 보통 중복된 데이터 존재 */
     DUPLICATE_USER(HttpStatus.CONFLICT, "이미 존재하는 userId 입니다"),
     MAX_PLAYER_SIZE(HttpStatus.CONFLICT, "플레이어 입장 수 초과입니다"),
+    ALREADY_PLAYING_BOARD(HttpStatus.CONFLICT, "이미 참가한 방입니다."),
 
     /* 500 INTERNAL_SERVER_ERROR : 서버오류 */
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류")

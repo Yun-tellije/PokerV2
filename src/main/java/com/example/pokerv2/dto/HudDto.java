@@ -13,16 +13,20 @@ public class HudDto {
 
     private Long id;
     private Long userId;
-    private int totalHands;
+    private String userName;
     private int vpip;
     private int pfr;
     private int cBet;
     private int threeBet;
     private int wtsd;
     private int wsd;
+    private int totalHands;
+    private int pfAggressiveCnt;
+    private int wtf;
 
     public HudDto(Hud hud) {
         this.id = hud.getId();
+        this.userName = hud.getUser().getUsername();
         this.userId = hud.getUser().getId();
         this.totalHands = hud.getTotalHands();
         this.vpip = hud.getVpip();
@@ -31,5 +35,7 @@ public class HudDto {
         this.threeBet = hud.getThreeBet();
         this.wtsd = hud.getWtsd();
         this.wsd = hud.getWsd();
+        this.pfAggressiveCnt = hud.getPfAggressiveCnt();
+        this.wtf = hud.getWtf();
     }
 }

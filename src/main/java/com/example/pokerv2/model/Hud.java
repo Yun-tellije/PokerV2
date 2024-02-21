@@ -52,13 +52,15 @@ public class Hud {
     private Long id;
     @OneToOne
     private User user;
-    private int totalHands;
     private int vpip;
     private int pfr;
     private int cBet;
     private int threeBet;
     private int wtsd;
     private int wsd;
+    private int totalHands;
+    private int pfAggressiveCnt;
+    private int wtf;
 
 
 }

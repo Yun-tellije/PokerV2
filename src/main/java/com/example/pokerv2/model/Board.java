@@ -53,6 +53,7 @@ public class Board {
 
     @Id @GeneratedValue
     private Long id;
+    private Long gameSeq;
     private int btn;
     private int totalPlayer;
     private int blind;
@@ -72,29 +73,13 @@ public class Board {
     private int communityCard5;
     private LocalDateTime lastActionTime;
 
-    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "board", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @OrderBy("position asc")
     @Builder.Default
     private List<Player> players = new ArrayList<>();
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
     @Builder.Default
     private List<Integer> totalCallSize = new ArrayList<>(List.of(0,0,0,0,0,0));
-
-    public void changeBoardStatus(BoardDto boardDto){
-        this.totalPlayer = boardDto.getTotalPlayer();
-        this.blind = boardDto.getBlind();
-        this.pot = boardDto.getPot();
-        this.bettingPos = boardDto.getBettingPos();
-        this.actionPos = boardDto.getActionPos();
-        this.phaseStatus = PhaseStatus.valueOf(boardDto.getPhaseStatus());
-        this.bettingSize = boardDto.getBettingSize();
-        this.communityCard1 = boardDto.getCommunityCard1();
-        this.communityCard2 = boardDto.getCommunityCard2();
-        this.communityCard3 = boardDto.getCommunityCard3();
-        this.communityCard4 = boardDto.getCommunityCard4();
-        this.communityCard5 = boardDto.getCommunityCard5();
-
-    }
 
 }

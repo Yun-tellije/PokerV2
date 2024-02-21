@@ -46,6 +46,9 @@ public class Player {
     @Id @GeneratedValue
     private Long id;
 
+    @Version
+    private Integer version;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -62,8 +65,4 @@ public class Player {
     private PlayerStatus status;
     private int phaseCallSize;
 
-    public void changePlayerStatus(PlayerDto playerDto) {
-        this.money = playerDto.getMoney();
-        this.phaseCallSize = playerDto.getPhaseCallSize();
-    }
 }

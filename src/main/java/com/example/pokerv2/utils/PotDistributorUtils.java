@@ -12,13 +12,6 @@ import java.util.*;
 @Component
 public class PotDistributorUtils {
 
-    /**
-     * 24/01/21 chan
-     *
-     * 쇼다운 시 승자에 따라 팟을 분배하는 유틸 클래스
-     *
-     */
-
     private static final Comparator<PlayerDto> HAND_VALUE_COMPARATOR = Comparator
             .comparingLong(p -> p.getGameResult().getHandValue());
 
@@ -59,8 +52,10 @@ public class PotDistributorUtils {
     private static void distributeOnePlayer(BoardDto boardDto, int winPlayerIdx) {
         List<PlayerDto> players = boardDto.getPlayers();
         PlayerDto winPlayer = players.get(winPlayerIdx);
-        List<Integer> totalCallSize = boardDto.getTotalCallSize();
+        List<Integer> totalCallSize = new ArrayList<>(boardDto.getTotalCallSize());
         int wpTotalCallSize = totalCallSize.get(winPlayerIdx);
+        GameResultDto gameResult = winPlayer.getGameResult();
+
         for(int j = winPlayerIdx +1; j < boardDto.getTotalPlayer(); j++) {
             PlayerDto losePlayer = players.get(j);
             int lpTotalCallSize = totalCallSize.get(j);
@@ -71,13 +66,12 @@ public class PotDistributorUtils {
             else {
                 takePotAmount = lpTotalCallSize;
             }
-
-            winPlayer.setMoney(winPlayer.getMoney() + takePotAmount);
             totalCallSize.set(j, totalCallSize.get(j) - takePotAmount);
             boardDto.setPot(boardDto.getPot() - takePotAmount);
-            GameResultDto gameResult = winPlayer.getGameResult();
             gameResult.setEarnedMoney(gameResult.getEarnedMoney() + takePotAmount);
         }
+        gameResult.setEarnedMoney(gameResult.getEarnedMoney() + totalCallSize.get(winPlayerIdx));
+        totalCallSize.set(winPlayerIdx, 0);
 
         if (winPlayer.getGameResult().getEarnedMoney() != 0){
             winPlayer.getGameResult().setWinner(true);
@@ -89,7 +83,7 @@ public class PotDistributorUtils {
         List<Integer> winPlayerTotalCallSize = new ArrayList<>();
 
         List<PlayerDto> players = boardDto.getPlayers();
-        List<Integer> totalCallSize = boardDto.getTotalCallSize();
+        List<Integer> totalCallSize = new ArrayList<>(boardDto.getTotalCallSize());
 
         for(int i = firstPlayerIdx; i < players.size(); i++){
             PlayerDto playerDto = players.get(i);
@@ -125,7 +119,6 @@ public class PotDistributorUtils {
                     boardDto.setPot(boardDto.getPot() - takePotAmount);
                     wpGameResult.setEarnedMoney(wpGameResult.getEarnedMoney() + takePotAmount);
                 }
-
                 else {
                     takePotAmount = totalCallSize.get(i) / (winPlayerList.size() - j);
                     for(int k = j; k < winPlayerList.size(); k++) {
@@ -136,7 +129,6 @@ public class PotDistributorUtils {
                     }
                     break;
                 }
-
             }
         }
 

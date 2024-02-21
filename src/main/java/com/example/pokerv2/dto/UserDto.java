@@ -16,6 +16,7 @@ public class UserDto {
     private String userName;
     private int money;
     private HudDto hud;
+    private String imagePath;
 
     public UserDto(User user){
         this.id = user.getId();
@@ -23,5 +24,6 @@ public class UserDto {
         this.userName = user.getUsername();
         this.money = user.getMoney();
         this.hud = new HudDto(user.getHud());
+        this.imagePath = user.getImagePath();
     }
 }

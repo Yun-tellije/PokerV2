@@ -47,12 +47,12 @@ public class Action {
     @Id @GeneratedValue
     private Long id;
     private int actionNo;
-
-    @Enumerated(EnumType.ORDINAL)
-    private Position position;
+    private Long userId;
+    private int position;
     @Enumerated(EnumType.ORDINAL)
     private PhaseStatus phaseStatus;
-    private String detail;
+    @Builder.Default
+    private String detail ="";
     @ManyToOne
     private HandHistory handHistory;
 
